@@ -179,7 +179,7 @@ mm.LineWidth=2;
         [~,pt]=ttest(DB(:,j),DSL(:,j));
             SD_B(j)=100*1.96*std(d)*2/(mean(DB(:,j))+mean(DSL(:,j)));
             s=std(d);
-        t=2.262; %Value taken from t student table 0.025 from probability and statistics for engineers with 9 dof
+        t=2.262; %Value taken from the two tailed Students t-distribution table (0.05 column) from probability and statistics for engineers with 9 dof
            n=length(DB(:,j));
            b=mean(d);
            %Confidence intervals of the bias
