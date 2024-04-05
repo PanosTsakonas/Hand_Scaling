@@ -299,12 +299,22 @@ mm.LineWidth=2;
       set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
      saveas(fig,FF+"\Bland-Altman\Bland-Altman "+f+" "+g,'jpg');
         saveas(fig,FF+"\Bland-Altman\Bland-Altman "+f+" "+g,'fig');
+    end
     
+    pvL=swtest(L(:,j));
+    pBB=swtest(BB(:,j));
+    pSL=swtest(SL(:,j));
+    
+    if pvL==0 && pBB==0 && pSL==0
     [p,tbl,stats] = anova1([L(:,j) BB(:,j) SL(:,j)]);
         set(gca,"XTickLabel",{'Participant','Buchholz','This thesis'})
         set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
         ylabel("Segment Length (mm)");
+        hold on;
         p1=multcompare(stats,"Display","off");
+        plot(stats.means,'--d','LineWidth',1);
+        legend("Mean values (mm)");
+        hold off;
         while(isnan(p1(3,6)))
             disp("In here");
             clear p1
@@ -336,7 +346,7 @@ mm.LineWidth=2;
            data={f+" "+g,pp1,pp2,pp3,flagr,};
            newRow = cell2table(data, 'VariableNames', strings);
             ANL=[ANL; newRow];
-        title({"One-way ANOVA between Participant and predicted values",...   
+        title({"One-way ANOVA between participant and predicted values",...   
                     "for "+f+" finger "+g+" segment"},"FontSize",8);
         saveas(gcf,FF+"\ANOVA\ANOVA "+f+" "+g,'jpg');
         saveas(gcf,FF+"\ANOVA\ANOVA "+f+" "+g,'fig');
@@ -348,6 +358,10 @@ mm.LineWidth=2;
         set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
         ylabel("Segment Length (mm)");
         p1=multcompare(stats,"Display","off");
+        hold on;
+        plot(mean([L(:,j) BB(:,j) SL(:,j)]),'--d','LineWidth',1);
+        legend("Mean values (mm)");
+        hold off;
         if p1(1,6)<0.01
             pp1="<0.01";
         else
@@ -375,7 +389,7 @@ mm.LineWidth=2;
            newRow = cell2table(data, 'VariableNames', strings);
             ANL=[ANL; newRow];
         
-        title({"One-way ANOVA between Participant and predicted values",...   
+        title({"One-way ANOVA between participant and predicted values",...   
                     "for "+f+" finger "+g+" segment"},"FontSize",8);
         saveas(gcf,FF+"\ANOVA\ANOVA "+f+" "+g+"Kruskalwallis",'jpg');
         saveas(gcf,FF+"\ANOVA\ANOVA "+f+" "+g+"Kruskalwallis",'fig');
@@ -529,7 +543,7 @@ mm.LineWidth=2;
     DSR(:,j)=R(:,j)-SR(:,j);
     plot(R(:,j),DBr(:,j),'o',R(:,j),DSR(:,j),'x');
     xlabel("Participant segment radius data (mm)");
-    ylabel("L_{Participant}- L_{Predicted} (mm)");
+    ylabel("R_{Participant}- R_{Predicted} (mm)");
     legend("Buchholz equation","Scaling equation from this thesis",'Location','southeast');
     title({'Difference between participant data and scaling equation',... 
             'for '+f+' finger '+g+' segment'});
@@ -621,12 +635,22 @@ mm.LineWidth=2;
       set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
      saveas(fig,FF1+"\Bland-Altman\Bland-Altman "+f+" "+g,'jpg');
         saveas(fig,FF1+"\Bland-Altman\Bland-Altman "+f+" "+g,'fig');
-        
-        [p,tbl,stats] = anova1([L(:,j) BB(:,j) SL(:,j)]);
+    end
+    pvR=swtest(R(:,j));
+    pBr=swtest(BBr(:,j));
+    pSR=swtest(SR(:,j));
+    
+    if pvR==0 && pBr==0 && pSR==0
+    
+        [p,tbl,stats] = anova1([R(:,j) BBr(:,j) SR(:,j)]);
         set(gca,"XTickLabel",{'Participant','Buchholz','This thesis'})
         set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
         ylabel("Segment Radius (mm)");
         p1=multcompare(stats,"Display","off");
+           hold on;
+        plot(stats.means,'--d','LineWidth',1);
+        legend("Mean values (mm)");
+        hold off;
         if p1(1,6)<0.01
             pp1=0.01;
         else
@@ -652,19 +676,23 @@ mm.LineWidth=2;
            data={f+" "+g,pp1,pp2,pp3,flagr,};
            newRow = cell2table(data, 'VariableNames', strings);
             ANR=[ANR; newRow];
-        title({"One-way ANOVA between Participant and predicted values",...   
+        title({"One-way ANOVA between participant and predicted values",...   
                     "for "+f+" finger "+g+" segment"},"FontSize",8);
         saveas(gcf,FF1+"\ANOVA\ANOVA "+f+" "+g,'jpg');
         saveas(gcf,FF1+"\ANOVA\ANOVA "+f+" "+g,'fig');
         
     else
         
-        [p,tbl,stats] = kruskalwallis([L(:,j) BB(:,j) SL(:,j)]);
+        [p,tbl,stats] = kruskalwallis([R(:,j) BBr(:,j) SR(:,j)]);
         set(gca,"XTickLabel",{'Participant','Buchholz','This thesis'})
         set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
         ylabel("Segment Radius (mm)");
-        title("One-way ANOVA between Participant and predicted values for "+f+" finger "+g+" segment");
+        
         p1=multcompare(stats,"Display","off");
+           hold on;
+        plot(plot(mean([R(:,j) BBr(:,j) SR(:,j)])),'--d','LineWidth',1);
+        legend("Mean values (mm)");
+        hold off;
         if p1(1,6)<0.01
             pp1=0.01;
         else
@@ -690,7 +718,7 @@ mm.LineWidth=2;
            data={f+" "+g,pp1,pp2,pp3,flagr,};
            newRow = cell2table(data, 'VariableNames', strings);
             ANR=[ANR; newRow];
-        title({"One-way ANOVA between Participant and predicted values",...   
+        title({"One-way ANOVA between participant and predicted values",...   
                     "for "+f+" finger "+g+" segment"},"FontSize",8);
         saveas(gcf,FF1+"\ANOVA\ANOVA "+f+" "+g+"Kruskalwallis",'jpg');
         saveas(gcf,FF1+"\ANOVA\ANOVA "+f+" "+g+"Kruskalwallis",'fig');
