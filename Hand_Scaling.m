@@ -131,7 +131,7 @@ L=[Lt Li Lm Lr Ll ];
 La=[g(:,1)+g(:,2)+g(:,3) g1(:,1)+g1(:,2)+g1(:,3) g2(:,1)+g2(:,2)+g2(:,3) g3(:,1)+g3(:,2)+g3(:,3) g4(:,1)+g4(:,2)+g4(:,3)];
 Ra=[Rt Ri Rm Rr Rl];
 
-
+dir="C:\Users\panos\OneDrive - University of Warwick\PhD\Thesis\Segment length validation\Linear fit with no intercept";
 %The next function calculates the Bland Altman plot and it checks if the mean difference between the 2 methods
 %follows a gaussian distribution using the Kolmogorov-Smirnov test. If the data seems to violate the assumption of 
 %distribution type, a warning message is generated.
@@ -142,32 +142,39 @@ BlandAltman(M_exp,M_th,{'Experimental','Theoretical', 'Grams'},'corrInfo',{'eq';
 [rPear,p_v,RL,RU]=corrcoef(M_th(1:23),M_exp(1:23),'alpha',0.05);
 
 fitfun=fittype(@(a,b,x) a+b.*x);
+ff1=fittype(@(b,x) b.*x);
 GoF_RMSE=zeros(15,1);
-x0=[0.001 0.2031];
+x0=[0.2031];
 SL=zeros(23,15);
+strings={'Segment', 'a', 'b', 'c','Eq','R^2','RMSE (mm)'};
+% Initialize an empty table with specified variable types
+TL = table('Size', [0 numel(strings)], 'VariableTypes', {'string', 'double', 'double', 'double', 'string', 'double', 'double'}, 'VariableNames', strings);
+TR=TL;
+
 for j=1:15
     
-[Fit,GoF]=fit(Palm,L(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[F,G]=fit(PL,L(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[F1,G1]=fit(PL.*HB,L(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[F2,G2]=fit(HL,L(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[F3,G3]=fit(HB,L(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[F4,G4]=fit(HW,L(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-LM=fitlm([HL HB HW],L(:,j));
-LM1=fitlm([PL HB HW],L(:,j));
+[Fit,GoF]=fit(Palm,L(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[F,G]=fit(PL,L(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[F1,G1]=fit(PL.*HB,L(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[F2,G2]=fit(HL,L(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[F3,G3]=fit(HB,L(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[F4,G4]=fit(HW,L(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+LM=fitlm([HL HB HW],L(:,j),'Intercept',false);
+LM1=fitlm([PL HB HW],L(:,j),'Intercept',false);
 
-[Fit1,GoF1]=fit(Palm,Ra(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[Ft1,GOFt1]=fit(HB,Ra(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[Ft2,GOFt2]=fit(PL.*HB,Ra(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[Ft3,GOFt3]=fit(HL,Ra(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[Ft4,GOFt4]=fit(HW,Ra(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-[Ft5,GOFt5]=fit(PL,Ra(:,j),fitfun,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
-RM=fitlm([HL HB HW],Ra(:,j));
-RM1=fitlm([PL HB HW],Ra(:,j));
+[Fit1,GoF1]=fit(Palm,Ra(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[Ft1,GOFt1]=fit(HB,Ra(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[Ft2,GOFt2]=fit(PL.*HB,Ra(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[Ft3,GOFt3]=fit(HL,Ra(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[Ft4,GOFt4]=fit(HW,Ra(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+[Ft5,GOFt5]=fit(PL,Ra(:,j),ff1,'MaxFunEvals',10^8,'MaxIter',10^8,'ToLFun',10^-8,'Robust','Bisquare','StartPoint',x0);
+RM=fitlm([HL HB HW],Ra(:,j),'Intercept',false);
+RM1=fitlm([PL HB HW],Ra(:,j),'Intercept',false);
 
 GOF_L=max([GoF.rsquare G.rsquare G1.rsquare G2.rsquare G3.rsquare G4.rsquare LM.Rsquared.Ordinary LM1.Rsquared.Ordinary]);
 GG=[GoF.rsquare G.rsquare G1.rsquare G3.rsquare G4.rsquare LM1.Rsquared.Ordinary];
 GOF_R=max([GoF1.rsquare GOFt1.rsquare GOFt2.rsquare GOFt3.rsquare GOFt4.rsquare GOFt5.rsquare RM.Rsquared.Ordinary RM1.Rsquared.Ordinary]);
+
 
 if j<=3
     f="thumb";
@@ -195,254 +202,316 @@ h=figure('Position',get(0,'Screensize'));
 
 
 if j>6 && j<=9
-    
+rmsL=max(GG);    
 subplot(2,1,1)
 if max(GG)==(GoF.rsquare)
-    coef=coeffvalues(Fit);
+    coef=round(coeffvalues(Fit),3);
     SL(:,j)=Fit(Palm);
 plot(Palm,L(:,j),'o',Palm,Fit(Palm));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1));
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+GoF.rsquare);
+c="y= "+num2str(coef(1))+"*x";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(GoF.rsquare,2));
 xlabel("Sum of PL, HB and HW dimensions (mm)");
 ylabel("Segment length (mm)");
+flag="Sum of PL, HB and HW dimensions (mm)";
+Rs=round(GoF.rsquare,2);
 legend(c);
 
 
 elseif max(GG)==(G.rsquare)
-    coef=coeffvalues(F);
+    coef=round(coeffvalues(F),3);
     SL(:,j)=F(PL);
 plot(PL,L(:,j),'o',PL,F(PL));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+G.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+G.rsquare);
+c="y= "+num2str(coef(1))+"*x with RMSE: "+round(G.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(G.rsquare,2));
 xlabel("Palm Length (mm)");
 ylabel("Segment length (mm)");
+flag="Palm Length (mm)";
+Rs=round(G.rsquare,2);
 legend(c);
 elseif max(GG)==(G1.rsquare)
-   coef=coeffvalues(F1);
+   coef=round(coeffvalues(F1),3);
    SL(:,j)=F1(PL.*HB);
 plot(PL.*HB,L(:,j),'o',PL.*HB,F1(PL.*HB));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+G1.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+G1.rsquare);
+c="y= "+num2str(coef(1))+"*x+ with RMSE: "+round(G1.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(G1.rsquare,2));
 xlabel("Product of Palm Length and Hand breadth (mm^2)");
 ylabel("Segment length (mm)");
+flag="Product of Palm Length and Hand breadth (mm^2)";
+Rs=round(G1.rsquare,2);
 legend(c); 
 elseif max(GG)==(G3.rsquare)
-   coef=coeffvalues(F3);
+   coef=round(coeffvalues(F3),3);
    SL(:,j)=F3(HB);
 plot(HB,L(:,j),'o',HB,F3(HB));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+G3.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+G3.rsquare);
+c="y= "+num2str(coef(1))+"*x with RMSE: "+round(G3.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(G3.rsquare,2));
 xlabel("Hand breadth (mm)");
 ylabel("Segment length (mm)");
+flag="Hand breadth (mm)";
+Rs=round(G3.rsquare,2);
 legend(c);
 elseif max(GG)==(G4.rsquare)
-    coef=coeffvalues(F4);
+    coef=round(coeffvalues(F4),3);
     SL(:,j)=F4(HW);
 plot(HW,L(:,j),'o',HW,F4(HW));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+G4.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+G4.rsquare);
+c="y= "+num2str(coef(1))+"*x with RMSE: "+round(G4.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(G4.rsquare,2));
 xlabel("Hand width (mm)");
 ylabel("Segment length (mm)");
+flag="Hand width (mm)";
+Rs=round(G4.rsquare,2);
 legend(c);
 else
     plot3(PL,HB,L(:,j),'o');
     hold on;
-    coef=table2array(LM1.Coefficients(:,1));
-    SL(:,j)=coef(1)+coef(2).*PL+coef(3).*HB+coef(4).*HW;
+    coef=round(table2array(LM1.Coefficients(:,1)),3);
+    SL(:,j)=coef(1).*PL+coef(2).*HB+coef(3).*HW;
     x1f=linspace(min(PL),max(PL),20);
     x2f=linspace(min(HB),max(HB),20);
     [X1F,X2F]=meshgrid(x1f,x2f);
-    Yf=coef(1)+coef(2)*X1F+coef(3)*X2F;
+    Yf=coef(1)*X1F+coef(2)*X2F;
     mesh(X1F,X2F,Yf)
     hold off;
     xlabel("Palm Length (mm)");
     ylabel("Hand Breadth (mm)");
     zlabel("Segment Length (mm)");
-    c="y= "+num2str(coef(1))+"+PL*"+num2str(coef(2))+"+HB*"+num2str(coef(3))+"+HW*"+num2str(coef(4))+" with RMSE: "+LM1.RMSE+" mm";
-    title("Multivariate Linear regression for the length of "+f+" "+g+" segment with R^2= "+LM1.Rsquared.Ordinary);
+    c="y= PL*"+num2str(coef(1))+"+HB*"+num2str(coef(2))+"+HW*"+num2str(coef(3))+" with RMSE: "+round(LM1.RMSE,2)+" mm";
+    title("Multivariate Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(LM1.Rsquared.Ordinary,2));
     legend(c);
+    flag="PL HB HW (mm)";
+Rs=round(LM1.Rsquared.Ordinary,2);
     
 end
 else
+    rmsL=GOF_L;
     subplot(2,1,1)
 if GOF_L==(GoF.rsquare)
-    coef=coeffvalues(Fit);
+    coef=round(coeffvalues(Fit),3);
     SL(:,j)=Fit(Palm);
 plot(Palm,L(:,j),'o',Palm,Fit(Palm));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+GoF.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+GoF.rsquare);
+c="y= "+num2str(coef(1))+"*x with RMSE: "+round(GoF.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(GoF.rsquare,2));
 xlabel("Sum of PL, HB and HW dimensions (mm)");
 ylabel("Segment length (mm)");
 legend(c);
-
+ flag="Sum of PL, HB and HW dimensions (mm)";
+Rs=round(GoF.rsquare,2);
 elseif GOF_L==(G.rsquare)
-    coef=coeffvalues(F);
+    coef=round(coeffvalues(F),3);
     SL(:,j)=F(PL);
 plot(PL,L(:,j),'o',PL,F(PL));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+G.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+G.rsquare);
+c="y= "+num2str(coef(1))+"*x with RMSE: "+round(G.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(G.rsquare,2));
 xlabel("Palm Length (mm)");
 ylabel("Segment length (mm)");
 legend(c);
+flag="Palm Length (mm)";
+Rs=round(G.rsquare,2);
 elseif GOF_L==(G1.rsquare)
-   coef=coeffvalues(F1);
+   coef=round(coeffvalues(F1),3);
    SL(:,j)=F1(PL.*HB);
 plot(PL.*HB,L(:,j),'o',PL.*HB,F1(PL.*HB));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+G1.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+G1.rsquare);
+c="y= "+num2str(coef(1))+"*x with RMSE: "+round(G1.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(G1.rsquare,2));
 xlabel("Product of Palm Length and Hand breadth (mm^2)");
 ylabel("Segment length (mm)");
 legend(c); 
+flag="Product of Palm Length and Hand breadth (mm^2)";
+Rs=round(G1.rsquare,2);
 elseif GOF_L==(G2.rsquare)
-coef=coeffvalues(F2);
+coef=round(coeffvalues(F2),3);
 SL(:,j)=F2(HL);
 plot(HL,L(:,j),'o',HL,F2(HL));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+G2.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+G2.rsquare);
+c="y= "+num2str(coef(1))+"*x with RMSE: "+round(G2.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(G2.rsquare,2));
 xlabel("Hand length (mm)");
 ylabel("Segment length (mm)");
 legend(c);     
+flag="Hand length (mm)";
+Rs=round(G2.rsquare,2);
 elseif GOF_L==(G3.rsquare)
-coef=coeffvalues(F3);
+coef=round(coeffvalues(F3),3);
 SL(:,j)=F3(HB);
 plot(HB,L(:,j),'o',HB,F3(HB));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+G3.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+G3.rsquare);
+c="y= "+num2str(coef(1))+"*x with RMSE: "+round(G3.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(G3.rsquare,2));
 xlabel("Hand breadth (mm)");
 ylabel("Segment length (mm)");
 legend(c); 
+flag="Hand breadth (mm)";
+Rs=round(G3.rsquare,2);
 elseif GOF_L==(G4.rsquare)
-    coef=coeffvalues(F4);
+    coef=round(coeffvalues(F4),3);
     SL(:,j)=F4(HW);
 plot(HW,L(:,j),'o',HW,F4(HW));
-c="y= "+num2str(coef(2))+"*x+"+num2str(coef(1))+" with RMSE: "+G4.rmse+" mm";
-title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+G4.rsquare);
+c="y= "+num2str(coef(1))+"*x with RMSE: "+round(G4.rmse,2)+" mm";
+title("Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(G4.rsquare,2));
 xlabel("Hand width (mm)");
 ylabel("Segment length (mm)");
 legend(c);
+flag="Hand width (mm)";
+Rs=round(G4.rsquare,2);
 elseif GOF_L==LM.Rsquared.Ordinary
     plot3(HL,HB,L(:,j),'o');
     hold on;
-    coef=table2array(LM.Coefficients(:,1));
-    SL(:,j)=coef(1)+coef(2).*HL+coef(3).*HB+coef(4).*HW;
+    coef=round(table2array(LM.Coefficients(:,1)),3);
+    SL(:,j)=coef(1).*HL+coef(2).*HB+coef(3).*HW;
     x1f=linspace(min(HL),max(HL),20);
     x2f=linspace(min(HB),max(HB),20);
     [X1F,X2F]=meshgrid(x1f,x2f);
-    Yf=coef(1)+coef(2)*X1F+coef(3)*X2F;
+    Yf=coef(1)*X1F+coef(2)*X2F;
     mesh(X1F,X2F,Yf)
     xlabel("Hand Length (mm)");
     ylabel("Hand Breadth (mm)");
     zlabel("Segment Length (mm)");
-    c="y= "+num2str(coef(1))+"+HL*"+num2str(coef(2))+"+HB*"+num2str(coef(3))+"+HW*"+num2str(coef(4))+" with RMSE: "+LM.RMSE+" mm";
-    title("Multivariate Linear regression for the length of "+f+" "+g+" segment with R^2= "+LM.Rsquared.Ordinary);
+    c="y= HL*"+num2str(coef(1))+"+HB*"+num2str(coef(2))+"+HW*"+num2str(coef(3))+" with RMSE: "+round(LM.RMSE,2)+" mm";
+    title("Multivariate Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(LM.Rsquared.Ordinary,2));
     legend(c);
+    flag="HL HB HW (mm)";
+Rs=round(LM.Rsquared.Ordinary,2);
 else
     plot3(PL,HB,L(:,j),'o');
     hold on;
-    coef=table2array(LM1.Coefficients(:,1));
-    SL(:,j)=coef(1)+coef(2).*PL+coef(3).*HB+coef(4).*HW;
+    coef=round(table2array(LM1.Coefficients(:,1)),3);
+    SL(:,j)=coef(1).*PL+coef(2).*HB+coef(3).*HW;
     x1f=linspace(min(PL),max(PL),20);
     x2f=linspace(min(HB),max(HB),20);
     [X1F,X2F]=meshgrid(x1f,x2f);
-    Yf=coef(1)+coef(2)*X1F+coef(3)*X2F;
+    Yf=coef(1)*X1F+coef(2)*X2F;
     mesh(X1F,X2F,Yf)
     hold off;
     xlabel("Palm Length (mm)");
     ylabel("Hand Breadth (mm)");
     zlabel("Segment Length (mm)");
-    c="y= "+num2str(coef(1))+"+PL*"+num2str(coef(2))+"+HB*"+num2str(coef(3))+"+HW*"+num2str(coef(4))+" with RMSE: "+LM1.RMSE+" mm";
-    title("Multivariate Linear regression for the length of "+f+" "+g+" segment with R^2= "+LM1.Rsquared.Ordinary);
+    c="y= PL*"+num2str(coef(1))+"+HB*"+num2str(coef(2))+"+HW*"+num2str(coef(3))+" with RMSE: "+round(LM1.RMSE,2)+" mm";
+    title("Multivariate Linear regression for the length of "+f+" "+g+" segment with R^2= "+round(LM1.Rsquared.Ordinary,2));
     legend(c);
+    flag="PL HB HW (mm)";
+Rs=round(LM1.Rsquared.Ordinary,2);
 end
 end
 
+if numel(coef)==1
+data={f+" "+g,coef(1),0,0,flag,Rs, round(rmsL,2)};
+else
+    data={f+" "+g,coef(1),coef(2),coef(3),flag,Rs, round(rmsL,2)};
+end
+newRow = cell2table(data, 'VariableNames', strings);
+TL=[TL; newRow];
+
 subplot(2,1,2)
 if GOF_R==(GoF1.rsquare)
-    coef1=coeffvalues(Fit1);
+    coef1=round(coeffvalues(Fit1),3);
 plot(Palm,Ra(:,j),'x',Palm,Fit1(Palm));
 ylabel("Segment radius (mm)");
 xlabel("Sum of PL, HB and HW dimensions (mm)");
-c1="y= "+num2str(coef1(2))+"*x+"+num2str(coef1(1))+" with RMSE: "+GoF1.rmse+" mm";
-title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+GoF1.rsquare);
+c1="y= "+num2str(coef1(1))+"*x with RMSE: "+round(GoF1.rmse,2)+" mm";
+title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+round(GoF1.rsquare,2));
 legend(c1);
+flagr="Sum of PL, HB and HW dimensions (mm)";
+Rsr=round(GoF1.rsquare,2);
 elseif GOF_R==(GOFt1.rsquare)
-    coef1=coeffvalues(Ft1);
+    coef1=round(coeffvalues(Ft1),3);
   plot(HB,Ra(:,j),'x',HB,Ft1(HB));
 ylabel("Segment radius (mm)");
 xlabel("Hand breadth (mm)");
-c1="y= "+num2str(coef1(2))+"*x+"+num2str(coef1(1))+" with RMSE: "+GOFt1.rmse+" mm";
-title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+GOFt1.rsquare);
+c1="y= "+num2str(coef1(1))+"*x with RMSE: "+round(GOFt1.rmse,2)+" mm";
+title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+round(GOFt1.rsquare,2));
 legend(c1);  
+flagr="Hand breadth (mm)";
+Rsr=round(GoFt1.rsquare,2);
 elseif GOF_R==(GOFt2.rsquare)
-    coef1=coeffvalues(Ft2);
+    coef1=round(coeffvalues(Ft2),3);
   plot(PL.*HB,Ra(:,j),'x',PL.*HB,Ft2(PL.*HB));
 ylabel("Segment radius (mm)");
 xlabel("Product of palm length and hand breadth (mm^2)");
-c1="y= "+num2str(coef1(2))+"*x+"+num2str(coef1(1))+" with RMSE: "+GOFt2.rmse+" mm";
-title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+GOFt2.rsquare);
+c1="y= "+num2str(coef1(1))+"*x with RMSE: "+round(GOFt2.rmse,2)+" mm";
+title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+round(GOFt2.rsquare,2));
 legend(c1);  
+flagr="Product of palm length and hand breadth (mm^2)";
+Rsr=round(GoFt2.rsquare,2);
 elseif GOF_R==(GOFt3.rsquare)
-    coef1=coeffvalues(Ft3);
+    coef1=round(coeffvalues(Ft3),3);
   plot(HL,Ra(:,j),'x',HL,Ft3(HL));
 ylabel("Segment radius (mm)");
 xlabel("Hand length (mm)");
-c1="y= "+num2str(coef1(2))+"*x+"+num2str(coef1(1))+" with RMSE: "+GOFt3.rmse+" mm";
-title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+GOFt3.rsquare);
+c1="y= "+num2str(coef1(1))+"*x with RMSE: "+round(GOFt3.rmse,2)+" mm";
+title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+round(GOFt3.rsquare,2));
 legend(c1); 
+flagr="Hand length (mm)";
+Rsr=round(GoFt3.rsquare,2);
 elseif GOF_R==(GOFt4.rsquare)
-    coef1=coeffvalues(Ft4);
+    coef1=round(coeffvalues(Ft4),3);
   plot(HW,Ra(:,j),'x',HW,Ft4(HW));
 ylabel("Segment radius (mm)");
 xlabel("Hand width (mm)");
-c1="y= "+num2str(coef1(2))+"*x+"+num2str(coef1(1))+" with RMSE: "+GOFt4.rmse+" mm";
-title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+GOFt4.rsquare);
+c1="y= "+num2str(coef1(1))+"*x with RMSE: "+round(GOFt4.rmse,2)+" mm";
+title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+round(GOFt4.rsquare,2));
 legend(c1); 
+flagr="Hand width (mm)";
+Rsr=round(GoFt4.rsquare,2);
 elseif GOF_R==(GOFt5.rsquare)
-    coef1=coeffvalues(Ft5);
+    coef1=round(coeffvalues(Ft5),3);
   plot(PL,Ra(:,j),'x',PL,Ft5(PL));
 ylabel("Segment radius (mm)");
 xlabel("Palm length (mm)");
-c1="y= "+num2str(coef1(2))+"*x+"+num2str(coef1(1))+" with RMSE: "+GOFt5.rmse+" mm";
-title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+GOFt5.rsquare);
+c1="y= "+num2str(coef1(1))+"*x with RMSE: "+round(GOFt5.rmse,2)+" mm";
+title("Linear regression for the radius of "+f+" "+g+" segment with R^2= "+round(GOFt5.rsquare,2));
 legend(c1); 
+flagr="Palm length (mm)";
+Rsr=round(GoFt5.rsquare,2);
 elseif GOF_R==RM.Rsquared.Ordinary
     plot3(HL,HB,Ra(:,j),'o');
     hold on;
-    coef=table2array(RM.Coefficients(:,1));
+    coef1=round(table2array(RM.Coefficients(:,1)),3);
     x1f=linspace(min(HL),max(HL),20);
     x2f=linspace(min(HB),max(HB),20);
     [X1F,X2F]=meshgrid(x1f,x2f);
-    Yf=coef(1)+coef(2)*X1F+coef(3)*X2F;
+    Yf=coef1(1)*X1F+coef1(2)*X2F;
     mesh(X1F,X2F,Yf)
     hold off;
     xlabel("Hand Length (mm)");
     ylabel("Hand Breadth (mm)");
     zlabel("Segment Radius (mm)");
-    c="y= "+num2str(coef(1))+"+HL*"+num2str(coef(2))+"+HB*"+num2str(coef(3))+"+HW*"+num2str(coef(4))+" with RMSE: "+RM.RMSE+" mm";
-    title("Multivariate Linear regression for the radius of "+f+" "+g+" segment with R^2= "+RM.Rsquared.Ordinary);
+    c="y= HL*"+num2str(coef1(1))+"+HB*"+num2str(coef1(2))+"+HW*"+num2str(coef1(3))+" with RMSE: "+round(RM.RMSE,2)+" mm";
+    title("Multivariate Linear regression for the radius of "+f+" "+g+" segment with R^2= "+round(RM.Rsquared.Ordinary,2));
     legend(c);
+    flagr="HL HB HW (mm)";
+Rsr=round(RM.Rsquared.Ordinary,2);
 else
     plot3(PL,HB,Ra(:,j),'o');
     hold on;
-    coef=table2array(RM1.Coefficients(:,1));
+    coef1=round(table2array(RM1.Coefficients(:,1)),3);
     x1f=linspace(min(PL),max(PL),20);
     x2f=linspace(min(HB),max(HB),20);
     [X1F,X2F]=meshgrid(x1f,x2f);
-    Yf=coef(1)+coef(2)*X1F+coef(3)*X2F;
+    Yf=coef1(1)*X1F+coef1(2)*X2F;
     mesh(X1F,X2F,Yf)
     hold off;
     xlabel("Palm Length (mm)");
     ylabel("Hand Breadth (mm)");
     zlabel("Segment Radius (mm)");
-    c="y= "+num2str(coef(1))+"+PL*"+num2str(coef(2))+"+HB*"+num2str(coef(3))+"+HW*"+num2str(coef(4))+" with RMSE: "+RM1.RMSE+" mm";
-    title("Multivariate Linear regression for the radius of "+f+" "+g+" segment with R^2= "+RM1.Rsquared.Ordinary);
+    c="y= PL*"+num2str(coef1(1))+"+HB*"+num2str(coef1(2))+"+HW*"+num2str(coef1(3))+" with RMSE: "+round(RM1.RMSE,2)+" mm";
+    title("Multivariate Linear regression for the radius of "+f+" "+g+" segment with R^2= "+round(RM1.Rsquared.Ordinary,2));
     legend(c);
+    flagr="PL HB HW (mm)";
+Rsr=round(RM1.Rsquared.Ordinary,2);
 end
-saveas(h,f+" "+g,'jpg');
+if numel(coef1)==1
+datar={f+" "+g,coef1(1),0,0,flagr,Rsr, round(GOF_R,2)};
+else
+    datar={f+" "+g,coef1(1),coef1(2),coef1(3),flagr,Rsr, round(GOF_R,2)};
+end
+newRowr = cell2table(datar, 'VariableNames', strings);
+TR=[TR; newRowr];
+
+saveas(h,dir+"\"+f+" "+g,'jpg');
 clear LM LM1 RM RM1 Fit F1 F2 F3 F4 Fit1 Ft1 Ft2 Ft3 Ft4 Ft5;
 end
 %}
 
+writetable(TL,dir+"\Segment_Length.xlsx");
+writetable(TR,dir+"\Segment_Radius.xlsx");
 %This part calculates the difference between estimating the segment length
 %using the scaling functions determined here and the ones from Buchholz
 
