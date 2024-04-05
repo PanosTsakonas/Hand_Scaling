@@ -407,21 +407,21 @@ end
 
 syms x
 
-RMtB=feval(matlabFunction(0.225*x/2),HB);
+RDtB=feval(matlabFunction(0.225*x/2),HB);
 RPtB=feval(matlabFunction(0.216*x/2),HB);
-RDtB=feval(matlabFunction(0.282*x/2),HB);
-RPiB=feval(matlabFunction(0.185*x/2),HB);
+RMtB=feval(matlabFunction(0.282*x/2),HB);
+RPiB=feval(matlabFunction(0.209*x/2),HB);
 RMiB=feval(matlabFunction(0.206*x/2),HB);
-RDiB=feval(matlabFunction(0.209*x/2),HB);
-RPmB=feval(matlabFunction(0.189*x/2),HB);
+RDiB=feval(matlabFunction(0.185*x/2),HB);
+RDmB=feval(matlabFunction(0.189*x/2),HB);
 RMmB=feval(matlabFunction(0.2*x/2),HB);
-RDmB=feval(matlabFunction(0.202*x/2),HB);
-RPrB=feval(matlabFunction(0.181*x/2),HB);
+RPmB=feval(matlabFunction(0.202*x/2),HB);
+RDrB=feval(matlabFunction(0.181*x/2),HB);
 RMrB=feval(matlabFunction(0.186*x/2),HB);
-RDrB=feval(matlabFunction(0.194*x/2),HB);
-RPlB=feval(matlabFunction(0.167*x/2),HB);
+RPrB=feval(matlabFunction(0.194*x/2),HB);
+RDlB=feval(matlabFunction(0.167*x/2),HB);
 RMlB=feval(matlabFunction(0.174*x/2),HB);
-RDlB=feval(matlabFunction(0.183*x/2),HB);
+RPlB=feval(matlabFunction(0.183*x/2),HB);
 
 BBr=[RMtB RPtB RDtB RPiB RMiB RDiB RPmB RMmB RDmB RPrB RMrB RDrB RPlB RMlB RDlB];
 
