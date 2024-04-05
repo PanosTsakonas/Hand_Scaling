@@ -1,12 +1,16 @@
 %This part calculates the difference between estimating the segment length
 %using the scaling functions determined here and the ones from Buchholz
 
-%Segment dimensions are in mm and scaling functions take dimensions in mm
-
 clear all;
 close all;
 clc;
 
+
+% Desired dimensions for the resized figure
+desired_width = 10.24; % in cm
+desired_height = 10; % in cm
+
+%Segment dimensions are in mm and scaling functions take dimensions in mm
 %Set alpha to 0.05 (5%)
 a=0.05;
 
@@ -19,6 +23,8 @@ else
 %If i am working from the University PC
 File="C:\Users\u1857308\OneDrive - University of Warwick\PhD\Hand Trials\Data for Scaling functions\Validation_Set.xlsx";
 end
+
+in=input("Are you using the intercept or not?: Y/N ","s");
 
 Thumb=importfile(File,D(1));
 Index=importfile(File,D(2));
@@ -85,8 +91,8 @@ BB=[LMtB LPtB LDtB LPiB LMiB LDiB LPmB LMmB LDmB LPrB LMrB LDrB LPlB LMlB LDlB];
 
 
 %My scaling functions for segment length
-syms y z 
-
+if in~="Y" && in~="y"
+    syms y z 
 LMt=feval(matlabFunction(25.746+0.5585*z),HW);
 LPt=feval(matlabFunction(12.1963+0.3834*x-0.5422*y-0.0073*z),HL,HB,HW);
 LDt=feval(matlabFunction(-12.8766+0.2269*x+0.03412*y-0.03416*z),HL,HB,HW);
@@ -102,13 +108,52 @@ LDr=feval(matlabFunction(-6.229+0.1586*x+0.0316*y+0.0018*z),HL,HB,HW);
 LPl=feval(matlabFunction(10.264-0.1354*x+0.4077*y-0.1548*z),PL,HB,HW);
 LMl=feval(matlabFunction(6.046+0.1015*x-0.018*y-0.09*z),HL,HB,HW);
 LDl=feval(matlabFunction(3.4093+0.1066*x+0.0166*y-0.0427*z),HL,HB,HW);
-
 SL=[LMt LPt LDt LPi LMi LDi LPm LMm LDm LPr LMr LDr LPl LMl LDl];
-
-if G=='l'
-    FF="C:\Users\panos\OneDrive - University of Warwick\PhD\Thesis\Segment length validation\";
 else
-    FF="C:\Users\u1857308\OneDrive - University of Warwick\PhD\Thesis\Segment length validation\";
+    I= importfile('C:\Users\panos\OneDrive - University of Warwick\PhD\Thesis\Segment length validation\Linear fit with no intercept\Segment_Length.xlsx',1);
+    [n,~]=size(I.data);
+    SL=zeros(length(HL),n);
+    syms x y z
+    for i=1:n
+    flag=I.textdata(i+1,5);
+    
+    if flag=="Sum of PL, HB and HW dimensions (mm)"
+        a1=PL+HB+HW;
+        b1=zeros(1,length(PL));
+        c1=zeros(1,length(PL));
+    elseif flag=="HL HB HW (mm)"
+        a1=HL;
+        b1=HB;
+        c1=HW;
+    elseif flag=="PL HB HW (mm)"
+        a1=PL;
+        b1=HB;
+        c1=HW;
+    end
+    
+    if i==1
+        SL(:,i)=feval(matlabFunction(I.data(i,1)*x+I.data(i,2)*y+I.data(i,3)*z),a1);
+    else
+    
+    SL(:,i)=feval(matlabFunction(I.data(i,1)*x+I.data(i,2)*y+I.data(i,3)*z),a1,b1,c1);
+    end
+    end
+end 
+strings={'Segment', 'Participant-Buchholz', 'Participant-This thesis', 'Buchholz-This thesis','Prefered'};
+ANL=table('Size', [0 numel(strings)], 'VariableTypes', {'string', 'double', 'double', 'double', 'string'}, 'VariableNames', strings);
+ANR=ANL;
+if G=='l'
+    if in=="Y" || in=="y"
+        FF="C:\Users\panos\OneDrive - University of Warwick\PhD\Thesis\Segment length validation\No Intercept\";
+    else
+    FF="C:\Users\panos\OneDrive - University of Warwick\PhD\Thesis\Segment length validation\Intercept\";
+    end
+else
+    if in=="Y" || in=="y"
+        FF="C:\Users\u1857308\OneDrive - University of Warwick\PhD\Thesis\Segment length validation\No Intercept\";
+    else
+    FF="C:\Users\u1857308\OneDrive - University of Warwick\PhD\Thesis\Segment length validation\Intercept\";
+    end
 end
 
 for j=1:15
@@ -149,7 +194,7 @@ mm.LineWidth=2;
         ylabel("Predicted segment length (mm)");
         title({'Graph between the predicted segment length values of '+f+' finger',...
                 ' '+g+' segment from this study, the Buchholz scaling function and the participant data'});
-        legend("Buchholz function","Scaling function from this study",'Location','southeast');
+        legend("Buchholz function","Scaling function from this thesis",'Location','southeast');
         ax=gca;
         ax.FontSize=8;
     hold off;
@@ -162,24 +207,25 @@ mm.LineWidth=2;
     DSL(:,j)=L(:,j)-SL(:,j);
     plot(L(:,j),DB(:,j),'o',L(:,j),DSL(:,j),'x');
     xlabel("Participant segment length data (mm)");
-    ylabel("Difference between participant data and predicted value (mm)");
+    ylabel("L_{Participant}- L_{Predicted} (mm)");
     legend("Buchholz equation","Scaling equation from this study",'Location','southeast');
     title({'Difference between participant data and scaling equation',... 
             'for '+f+' finger '+g+' segment'});
      ax=gca;
      ax.FontSize=8;
+      set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
      saveas(h,FF+"\Differences\difference "+f+" "+g,'jpg');
     saveas(h,FF+"\Differences\difference "+f+" "+g,'fig');
     
     
-    [H(j),p(j)]=swtest(DB(:,j)-DSL(:,j),a);
+    [H(j),p(j)]=swtest((DB(:,j))-(DSL(:,j)),a);
     if (H(j)==0 && p(j)>a)
-        m=(DB(:,j)+DSL(:,j))/2;
-        d=DB(:,j)-DSL(:,j);
-        [~,pt]=ttest(DB(:,j),DSL(:,j));
-            SD_B(j)=100*1.96*std(d)*2/(mean(DB(:,j))+mean(DSL(:,j)));
+        m=((DB(:,j))+(DSL(:,j)))/2;
+        d=(DB(:,j))-(DSL(:,j));
+        [~,pt]=ttest((DB(:,j)),(DSL(:,j)));
+            %SD_B(j)=100*1.96*std(d)*2/(mean(DB(:,j))+mean(DSL(:,j)));
             s=std(d);
-        t=2.262; %Value taken from the two tailed Students t-distribution table (0.05 column) from probability and statistics for engineers with 9 dof
+        t=2.262; %Value taken from t student table 0.025 from probability and statistics for engineers with 9 dof
            n=length(DB(:,j));
            b=mean(d);
            %Confidence intervals of the bias
@@ -228,8 +274,8 @@ mm.LineWidth=2;
            %Horizontal line at lower C.I. of bias
            plot([a1 b1],[dci_l(j) dci_l(j)],'-k','LineWidth',1.5);
            hold off;
-           xlabel("(\Delta L_{Buchholz,Data} +\Delta L_{This study,data})/2 (mm)");
-           ylabel("\Delta L_{Buchholz,Data} -\Delta L_{This study,data}(mm)");
+           xlabel("( \DeltaL_{data,Buchholz} + \DeltaL_{data,This thesis})/2 (mm)");
+           ylabel("\DeltaL_{data,Buchholz} - \DeltaL_{data,This thesis}(mm)");
           
             axis([a1-0.05*a1 max(m)+0.1*max(m) loa_l(j)-0.1*loa_l(j) loa_u(j)+0.1*loa_u(j)]);
            if ((loa_l(j)-0.1*loa_l(j)>0.5)|| (loa_u(j)+0.1*loa_u(j)<-0.5))
@@ -237,18 +283,104 @@ mm.LineWidth=2;
            else
                legend("Data","Bias","Line of Equality","LOA upper","LOA lower","Bias C.I.",'Location','SouthEast','FontSize',8);
            end
-           s={"Bias: "+b+" mm","Paired t-test p-value: "+pt,"Shapiro-Wilk test p-value: "+p(j)};
+           if pt<0.01
+               pt="<0.01";
+           else
+               pt=round(pt,3);
+           end
+           s={"Bias: "+round(b,3)+" mm","Paired t-test p-value: "+pt,"Shapiro-Wilk test p-value: "+round(p(j),3)};
            annotation('textbox', [0.3, 0.8, 0.1, 0.1],'String',s,'FitBoxToText','on')
-           
-     title({"Bland-Altman plot of differences between participant data and scaling functions ",...
-         "from this study and Buchholz for "+f+" finger "+g+ " segment"});
-     ax=gca;
-     ax.FontSize=8;   
+             ax=gca;
+     ax.FontSize=8;  
+     
+     title({"Bland-Altman plot of absolute differences between participant data and scaling",...
+         "functions from this study and Buchholz for "+f+" finger "+g+ " segment"},"FontSize",7);
+   
+      set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
      saveas(fig,FF+"\Bland-Altman\Bland-Altman "+f+" "+g,'jpg');
         saveas(fig,FF+"\Bland-Altman\Bland-Altman "+f+" "+g,'fig');
     
-    end
-
+    [p,tbl,stats] = anova1([L(:,j) BB(:,j) SL(:,j)]);
+        set(gca,"XTickLabel",{'Participant','Buchholz','This thesis'})
+        set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
+        ylabel("Segment Length (mm)");
+        p1=multcompare(stats,"Display","off");
+        while(isnan(p1(3,6)))
+            disp("In here");
+            clear p1
+            p1=multcompare(stats,"Display","off");
+            
+        end
+       if p1(1,6)<0.01
+            pp1=0.01;
+        else
+            pp1=round(p1(1,6),3);
+        end
+        if p1(2,6)<0.01
+            pp2=0.01;
+        else
+            pp2=round(p1(2,6),3);
+        end
+            if p1(3,6)<0.01
+                pp3=0.01;
+            else
+                pp3=round(p1(3,6),3);
+            end
+            if p1(1,6)>p1(2,6) && p1(2,6)<0.01
+                flagr="Buchholz";
+            elseif (p1(1,6)>p1(2,6) && p1(2,6)>0.05) || (p1(1,6)<p1(2,6) && p1(1,6)>0.05)
+                flagr="Both";
+            else
+                flagr="This thesis";
+            end
+           data={f+" "+g,pp1,pp2,pp3,flagr,};
+           newRow = cell2table(data, 'VariableNames', strings);
+            ANL=[ANL; newRow];
+        title({"One-way ANOVA between Participant and predicted values",...   
+                    "for "+f+" finger "+g+" segment"},"FontSize",8);
+        saveas(gcf,FF+"\ANOVA\ANOVA "+f+" "+g,'jpg');
+        saveas(gcf,FF+"\ANOVA\ANOVA "+f+" "+g,'fig');
+        
+    else
+        
+        [p,tbl,stats] = kruskalwallis([L(:,j) BB(:,j) SL(:,j)]);
+        set(gca,"XTickLabel",{'Participant','Buchholz','This thesis'})
+        set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
+        ylabel("Segment Length (mm)");
+        p1=multcompare(stats,"Display","off");
+        if p1(1,6)<0.01
+            pp1="<0.01";
+        else
+            pp1=round(p1(1,6),3);
+        end
+        if p1(2,6)<0.01
+            pp2="<0.01";
+        else
+            pp2=round(p1(2,6),3);
+        end
+            if p1(3,6)<0.01
+                pp3="<0.01";
+            else
+                pp3=round(p1(3,6),3);
+            end
+            
+           if p1(1,6)>p1(2,6) && p1(2,6)<0.01
+                flagr="Buchholz";
+            elseif (p1(1,6)>p1(2,6) && p1(2,6)>0.05) || (p1(1,6)<p1(2,6) && p1(1,6)>0.05)
+                flagr="Both";
+            else
+                flagr="This thesis";
+            end
+           data={f+" "+g,pp1,pp2,pp3,flagr,};
+           newRow = cell2table(data, 'VariableNames', strings);
+            ANL=[ANL; newRow];
+        
+        title({"One-way ANOVA between Participant and predicted values",...   
+                    "for "+f+" finger "+g+" segment"},"FontSize",8);
+        saveas(gcf,FF+"\ANOVA\ANOVA "+f+" "+g+"Kruskalwallis",'jpg');
+        saveas(gcf,FF+"\ANOVA\ANOVA "+f+" "+g+"Kruskalwallis",'fig');
+end
+clear stats
 end
 
 
@@ -281,6 +413,7 @@ BBr=[RMtB RPtB RDtB RPiB RMiB RDiB RPmB RMmB RDmB RPrB RMrB RDrB RPlB RMlB RDlB]
 
 %My scaling equations for segment radius.
 
+if in~="Y" && in~="y"
 syms x y z
 
 RMt=feval(matlabFunction(13.251+0.15*x),HW);
@@ -300,12 +433,49 @@ RMl=feval(matlabFunction(1.346+0.011*x+0.022*y+0.064*z),HL,HB,HW);
 RDl=feval(matlabFunction(0.118+0.004*x+0.068*y+0.001*z),HL,HB,HW);
 
 SR=[RMt RPt RDt RPi RMi RDi RPm RMm RDm RPr RMr RDr RPl RMl RDl];
+else
+    I= importfile('C:\Users\panos\OneDrive - University of Warwick\PhD\Thesis\Segment length validation\Linear fit with no intercept\Segment_Radius.xlsx',1);
+    [n,~]=size(I.data);
+    SR=zeros(length(HL),n);
+    syms x y z
+    for i=1:n
+    flag=I.textdata(i+1,5);
+    
+    if flag=="Sum of PL, HB and HW dimensions (mm)"
+        a1=PL+HB+HW;
+        b1=zeros(1,lenth(PL));
+        c1=zeros(1,length(PL));
+    elseif flag=="HL HB HW (mm)"
+        a1=HL;
+        b1=HB;
+        c1=HW;
+    elseif flag=="PL HB HW (mm)"
+        a1=PL;
+        b1=HB;
+        c1=HW;
+    end
+if i~=15
+    SR(:,i)=feval(matlabFunction(I.data(i,1)*x+I.data(i,2)*y+I.data(i,3)*z),a1,b1,c1);
+else
+    SR(:,i)=feval(matlabFunction(I.data(i,1)*x+I.data(i,2)*y),a1,b1);
+end
 
+    
+    end
+end 
 
 if G=='l'
-    FF1="C:\Users\panos\OneDrive - University of Warwick\PhD\Thesis\Segment radius validation\";
+    if in=="Y" || in=="y" 
+    FF1="C:\Users\panos\OneDrive - University of Warwick\PhD\Thesis\Segment radius validation\No Intercept";
+    else
+      FF1="C:\Users\panos\OneDrive - University of Warwick\PhD\Thesis\Segment radius validation\Intercept\";
+    end
 else
-    FF1="C:\Users\u1857308\OneDrive - University of Warwick\PhD\Thesis\Segment radius validation\";
+    if in=="Y" || in=="y" 
+    FF1="C:\Users\u1857308\OneDrive - University of Warwick\PhD\Thesis\Segment radius validation\No Intercept";
+    else
+    FF1="C:\Users\u1857308\OneDrive - University of Warwick\PhD\Thesis\Segment radius validation\Intercept\";
+    end
 end
 
 for j=1:15
@@ -359,22 +529,23 @@ mm.LineWidth=2;
     DSR(:,j)=R(:,j)-SR(:,j);
     plot(R(:,j),DBr(:,j),'o',R(:,j),DSR(:,j),'x');
     xlabel("Participant segment radius data (mm)");
-    ylabel("Difference between participant data and predicted value (mm)");
-    legend("Buchholz equation","Scaling equation from this study",'Location','southeast');
+    ylabel("L_{Participant}- L_{Predicted} (mm)");
+    legend("Buchholz equation","Scaling equation from this thesis",'Location','southeast');
     title({'Difference between participant data and scaling equation',... 
             'for '+f+' finger '+g+' segment'});
      ax=gca;
      ax.FontSize=8;
+      set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
      saveas(h,FF1+"\Differences\difference "+f+" "+g,'jpg');
     saveas(h,FF1+"\Differences\difference "+f+" "+g,'fig');
     
     
-    [H(j),p(j)]=swtest(DBr(:,j)-DSR(:,j),a);
+    [H(j),p(j)]=swtest((DBr(:,j))-(DSR(:,j)),a);
     if (H(j)==0 && p(j)>a)
-        m=(DBr(:,j)+DSR(:,j))/2;
-        d=DBr(:,j)-DSR(:,j);
-        [~,pt]=ttest(DBr(:,j),DSR(:,j));
-            SD_Br(j)=100*1.96*std(d)*2/(mean(DBr(:,j))+mean(DSR(:,j)));
+        m=((DBr(:,j))+(DSR(:,j)))/2;
+        d=(DBr(:,j))-(DSR(:,j));
+        [~,pt]=ttest((DBr(:,j)),(DSR(:,j)));
+            %SD_Br(j)=100*1.96*std(d)*2/(mean(DBr(:,j))+mean(DSR(:,j)));
             s=std(d);
         t=2.262; %Value taken from t student table 0.025 from probability and statistics for engineers with 9 dof
            n=length(DBr(:,j));
@@ -425,8 +596,8 @@ mm.LineWidth=2;
            %Horizontal line at lower C.I. of bias
            plot([a1 b1],[dci_l(j) dci_l(j)],'-k','LineWidth',1.5);
            hold off;
-           xlabel("(\Delta R_{Buchholz,Data} +\Delta R_{This study,data})/2 (mm)");
-           ylabel("\Delta R_{Buchholz,Data} -\Delta R_{This study,data}(mm)");
+           xlabel("(\DeltaR_{data,Buchholz} +\DeltaR_{data,This thesis})/2 (mm)");
+           ylabel("\DeltaR_{data,Buchholz} - \DeltaR_{data,This thesis}(mm)");
           
             axis([a1-0.05*a1 max(m)+0.1*max(m) loa_l(j)-0.1*loa_l(j) loa_u(j)+0.1*loa_u(j)]);
            if ((loa_l(j)-0.1*loa_l(j)>0.5)|| (loa_u(j)+0.1*loa_u(j)<-0.5))
@@ -434,16 +605,97 @@ mm.LineWidth=2;
            else
                legend("Data","Bias","Line of Equality","LOA upper","LOA lower","Bias C.I.",'Location','SouthEast','FontSize',8);
            end
-           s={"Bias: "+b+" mm","Paired t-test p-value: "+pt,"Shapiro-Wilk test p-value: "+p(j)};
-           annotation('textbox', [0.3, 0.8, 0.1, 0.1],'String',s,'FitBoxToText','on')
            
-     title({"Bland-Altman plot of differences between participant data and scaling functions ",...
-         "from this study and Buchholz for "+f+" finger "+g+ " segment"});
-     ax=gca;
+           if pt<0.01
+               pt="< 0.01";
+           else
+               pt=round(pt,3);
+           end
+           s={"Bias: "+round(b,3)+" mm","Paired t-test p-value: "+pt,"Shapiro-Wilk test p-value: "+round(p(j),3)};
+           annotation('textbox', [0.3, 0.8, 0.1, 0.1],'String',s,'FitBoxToText','on')
+          ax=gca;
      ax.FontSize=8;   
+     title({"Bland-Altman plot of absolute differences between participant data and scaling",...
+         "functions from this study and Buchholz for "+f+" finger "+g+ " segment"},"FontSize",7);
+      
+      set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
      saveas(fig,FF1+"\Bland-Altman\Bland-Altman "+f+" "+g,'jpg');
         saveas(fig,FF1+"\Bland-Altman\Bland-Altman "+f+" "+g,'fig');
-    
-    end
-
+        
+        [p,tbl,stats] = anova1([L(:,j) BB(:,j) SL(:,j)]);
+        set(gca,"XTickLabel",{'Participant','Buchholz','This thesis'})
+        set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
+        ylabel("Segment Radius (mm)");
+        p1=multcompare(stats,"Display","off");
+        if p1(1,6)<0.01
+            pp1=0.01;
+        else
+            pp1=round(p1(1,6),3);
+        end
+        if p1(2,6)<0.01
+            pp2=0.01;
+        else
+            pp2=round(p1(2,6),3);
+        end
+            if p1(3,6)<0.01
+                pp3=0.01;
+            else
+                pp3=round(p1(3,6),3);
+            end
+       if p1(1,6)>p1(2,6) && p1(2,6)<0.01
+                flagr="Buchholz";
+            elseif (p1(1,6)>p1(2,6) && p1(2,6)>0.05) || (p1(1,6)<p1(2,6) && p1(1,6)>0.05)
+                flagr="Both";
+            else
+                flagr="This thesis";
+            end
+           data={f+" "+g,pp1,pp2,pp3,flagr,};
+           newRow = cell2table(data, 'VariableNames', strings);
+            ANR=[ANR; newRow];
+        title({"One-way ANOVA between Participant and predicted values",...   
+                    "for "+f+" finger "+g+" segment"},"FontSize",8);
+        saveas(gcf,FF1+"\ANOVA\ANOVA "+f+" "+g,'jpg');
+        saveas(gcf,FF1+"\ANOVA\ANOVA "+f+" "+g,'fig');
+        
+    else
+        
+        [p,tbl,stats] = kruskalwallis([L(:,j) BB(:,j) SL(:,j)]);
+        set(gca,"XTickLabel",{'Participant','Buchholz','This thesis'})
+        set(gcf,'Units','centimeters', 'Position', [10, 10, desired_width, desired_height]);
+        ylabel("Segment Radius (mm)");
+        title("One-way ANOVA between Participant and predicted values for "+f+" finger "+g+" segment");
+        p1=multcompare(stats,"Display","off");
+        if p1(1,6)<0.01
+            pp1=0.01;
+        else
+            pp1=round(p1(1,6),3);
+        end
+        if p1(2,6)<0.01
+            pp2=0.01;
+        else
+            pp2=round(p1(2,6),3);
+        end
+            if p1(3,6)<0.01
+                pp3=0.01;
+            else
+                pp3=round(p1(3,6),3);
+            end
+           if p1(1,6)>p1(2,6) && p1(2,6)<0.01
+                flagr="Buchholz";
+            elseif (p1(1,6)>p1(2,6) && p1(2,6)>0.05) || (p1(1,6)<p1(2,6) && p1(1,6)>0.05)
+                flagr="Both";
+            else
+                flagr="This thesis";
+            end
+           data={f+" "+g,pp1,pp2,pp3,flagr,};
+           newRow = cell2table(data, 'VariableNames', strings);
+            ANR=[ANR; newRow];
+        title({"One-way ANOVA between Participant and predicted values",...   
+                    "for "+f+" finger "+g+" segment"},"FontSize",8);
+        saveas(gcf,FF1+"\ANOVA\ANOVA "+f+" "+g+"Kruskalwallis",'jpg');
+        saveas(gcf,FF1+"\ANOVA\ANOVA "+f+" "+g+"Kruskalwallis",'fig');
 end
+end
+
+writetable(ANL,FF+"\ANOVA\ANOVA_Segment_Length.xlsx");
+writetable(ANR,FF1+"\ANOVA\ANOVA_Segment_Radius.xlsx");
